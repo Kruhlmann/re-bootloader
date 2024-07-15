@@ -1,7 +1,8 @@
-name: build
-
 on:
   push:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -52,12 +53,10 @@ jobs:
       with:
         body_path: CHANGELOG.md
         files: |
-          Release.txt
-          LICENSE
+          main.efi
+          reboot.img
         prerelease: false
         draft: false
         fail_on_unmatched_files: true
         generate_release_notes: true
         make_latest: true
-      permissions:
-        contents: write
