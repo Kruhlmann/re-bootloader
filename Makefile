@@ -6,7 +6,6 @@ LD_OBJ ?= /usr/lib/crt0-efi-x86_64.o
 EFI_LDS ?= /usr/lib/elf_x86_64_efi.lds
 BIOS_FD ?= /usr/share/OVMF/FV/OVMF.fd
 LD_EXTRA ?= 
-DISK_BLOCK_COUNT ?= 204800
 DISK_BLOCK_SIZE_BYTES ?= 512
 
 CC := gcc
@@ -23,6 +22,11 @@ run: reboot.img
 	qemu-system-x86_64 -drive file=$<,format=raw $(QEMUFLAGS)
 
 reboot.img: main.efi
+	$(eval EFI_SIZE := $(shell stat -c%s $<))
+	$(eval MIN_DISK_SIZE := 10485760) # Minimum disk size of 10MB
+	$(eval DISK_SIZE := $(shell echo $$(( $(EFI_SIZE) + 1048576 ))))
+	$(eval FINAL_DISK_SIZE := $(shell echo $$(( $(DISK_SIZE) > $(MIN_DISK_SIZE) ? $(DISK_SIZE) : $(MIN_DISK_SIZE) ))))
+	$(eval DISK_BLOCK_COUNT := $(shell echo $$(( ($(FINAL_DISK_SIZE) + $(DISK_BLOCK_SIZE_BYTES) - 1) / $(DISK_BLOCK_SIZE_BYTES) ))))
 	dd if=/dev/zero of=$@ bs=$(DISK_BLOCK_SIZE_BYTES) count=$(DISK_BLOCK_COUNT)
 	parted -s $@ mklabel gpt
 	parted -s $@ mkpart EFI fat32 2048s 100%
