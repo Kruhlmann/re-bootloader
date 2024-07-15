@@ -9,7 +9,7 @@ DISK_BLOCK_COUNT ?= 204800
 DISK_BLOCK_SIZE_BYTES ?= 512
 
 CFLAGS := -c -fno-stack-protector -fpic -fshort-wchar -mno-red-zone -DEFI_FUNCTION_WRAPPER $(addprefix -I,$(INCLUDE_DIRS))
-LDFLAGS := -nostdlib -znocombreloc -T $(EFI_LDS) -shared -Bsymbolic -L ./ -l:libgnuefi.a -l:libefi.a
+LDFLAGS := -nostdlib -znocombreloc -T $(EFI_LDS) -shared -Bsymbolic -lgnuefi -lefi
 QEMUFLAGS := -bios $(BIOS_FD) -nographic -serial mon:stdio 
 
 .PHONY: all
