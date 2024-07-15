@@ -16,6 +16,7 @@ pkgs.mkShell {
     gdb
     binutils
     mtools
+    parted
     customizedOVMF.fd
   ];
 

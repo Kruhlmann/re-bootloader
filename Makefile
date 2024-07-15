@@ -5,7 +5,7 @@ INCLUDE_DIRS ?= /usr/lib
 LD_OBJ ?= /usr/lib/crt0-efi-x86_64.o
 EFI_LDS ?= /usr/lib/elf_x86_64_efi.lds
 BIOS_FD ?= /usr/share/OVMF/FV/OVMF.fd
-DISK_BLOCK_COUNT ?= 5760
+DISK_BLOCK_COUNT ?= 204800
 DISK_BLOCK_SIZE_BYTES ?= 512
 DISK_SIZE_MiB := $(shell echo $$(($(DISK_BLOCK_COUNT) * $(DISK_BLOCK_SIZE_BYTES) / 1024)))
 
@@ -20,12 +20,17 @@ all: reboot.efi
 run: reboot.img
 	qemu-system-x86_64 -drive file=$<,format=raw $(QEMUFLAGS)
 
+
 reboot.img: reboot.efi
 	dd if=/dev/zero of=$@ bs=$(DISK_BLOCK_SIZE_BYTES) count=$(DISK_BLOCK_COUNT)
-	mformat -i $@ -f $(DISK_SIZE_MiB) ::
-	mmd -i $@ ::/EFI
-	mmd -i $@ ::/EFI/BOOT
-	mcopy -i $@ reboot.efi ::/EFI/BOOT/BOOTX64.EFI
+	parted -s $@ mklabel gpt
+	parted -s $@ mkpart EFI fat32 2048s 100%
+	parted -s $@ set 1 esp on
+	$(eval ESP_OFFSET := $(shell parted -s $@ unit b print | grep EFI | awk '{print $$2}' | tr -d 'B'))
+	mformat -i $@@@$(ESP_OFFSET) -h 32 -t 32 -n 64 -c 1 ::
+	mmd -i $@@@$(ESP_OFFSET) ::/EFI
+	mmd -i $@@@$(ESP_OFFSET) ::/EFI/BOOT
+	mcopy -i $@@@$(ESP_OFFSET) reboot.efi ::/EFI/BOOT/BOOTX64.EFI
 
 reboot.efi: main.so
 	objcopy -j .text -j .sdata -j .data -j .dynamic -j .dynsym -j .rel -j .rela -j .reloc --target=efi-app-x86_64 $< $@
@@ -35,3 +40,6 @@ reboot.efi: main.so
 
 %.so: %.o
 	ld $< $(LD_OBJ) $(LDFLAGS) -o $@
+
+clean:
+	rm *.o *.so reboot.efi reboot.img
