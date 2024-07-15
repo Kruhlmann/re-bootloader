@@ -4,6 +4,10 @@ This project implements a simple AMD64 UEFI bootloader that immediately reboots 
 
 Useful as a fall-back disk install in case machines that rely on PXE cannot be configured to auto-retry.
 
+<center>
+    <img src="./doc/demo.gif" />
+</center>
+
 ## Dependencies
 
 This project requires the following tools and libraries:
