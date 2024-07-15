@@ -1,0 +1,23 @@
+name: Build UEFI Application
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Set up environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential gcc gnu-efi mtools grub-efi-amd64-bin
+    - name: Build UEFI application
+      run: make all
+    - name: Archive build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: reboot-efi
+        path: reboot.efi
