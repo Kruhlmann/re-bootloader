@@ -47,6 +47,12 @@ jobs:
           git config --global safe.directory /github/workspace
           git fetch --tags
 
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: reboot-artifacts
+          path: ./artifacts
+
       - name: Get release tag
         id: get_tag
         run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
@@ -77,7 +83,7 @@ jobs:
           curl -X POST \
             -H "Authorization: token $GITHUB_TOKEN" \
             -H "Content-Type: application/octet-stream" \
-            --data-binary @./path/to/main.efi \
+            --data-binary @./artifacts/main.efi \
             "${{ env.upload_url }}?name=main.efi"
 
       - name: Upload reboot.img
@@ -87,5 +93,5 @@ jobs:
           curl -X POST \
             -H "Authorization: token $GITHUB_TOKEN" \
             -H "Content-Type: application/octet-stream" \
-            --data-binary @./path/to/reboot.img \
+            --data-binary @./artifacts/reboot.img \
             "${{ env.upload_url }}?name=reboot.img"
