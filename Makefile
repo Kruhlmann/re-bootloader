@@ -16,7 +16,7 @@ QEMUFLAGS := -bios $(BIOS_FD) -nographic -serial mon:stdio
 OBJCOPYFLAGS := -j .text -j .sdata -j .data -j .dynamic -j .dynsym -j .rel -j .rela -j .reloc --target=efi-app-x86_64
 
 .PHONY: all
-all: reboot.efi
+all: main.efi
 
 .PHONY: run
 run: reboot.img
