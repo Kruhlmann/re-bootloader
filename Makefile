@@ -7,14 +7,13 @@ EFI_LDS ?= /usr/lib/elf_x86_64_efi.lds
 BIOS_FD ?= /usr/share/OVMF/FV/OVMF.fd
 DISK_BLOCK_COUNT ?= 204800
 DISK_BLOCK_SIZE_BYTES ?= 512
-DISK_SIZE_MiB := $(shell echo $$(($(DISK_BLOCK_COUNT) * $(DISK_BLOCK_SIZE_BYTES) / 1024)))
 
 CFLAGS := -c -fno-stack-protector -fpic -fshort-wchar -mno-red-zone -DEFI_FUNCTION_WRAPPER $(addprefix -I,$(INCLUDE_DIRS))
 LDFLAGS := -nostdlib -znocombreloc -T $(EFI_LDS) -shared -Bsymbolic -L ./ -l:libgnuefi.a -l:libefi.a
 QEMUFLAGS := -bios $(BIOS_FD) -nographic -serial mon:stdio 
 
 .PHONY: all
-all: reboot.efi
+all: reboot.efi reboot.img
 
 .PHONY: run
 run: reboot.img
