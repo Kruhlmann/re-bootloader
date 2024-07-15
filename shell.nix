@@ -26,5 +26,6 @@ pkgs.mkShell {
     export EFI_LDS="${pkgs.gnu-efi}/lib/elf_x86_64_efi.lds"
     export LD_OBJ="${pkgs.gnu-efi}/lib/crt0-efi-x86_64.o"
     export INCLUDE_DIRS="${pkgs.gnu-efi}/include/efi"
+    export LD_EXTRA=""
   '';
 }

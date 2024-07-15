@@ -25,6 +25,7 @@ jobs:
         echo "LD_OBJ=$(find /usr/lib -name crt0-efi-x86_64.o | head -n 1)" >> $GITHUB_OUTPUT
         echo "EFI_LDS=$(find /usr/lib -name elf_x86_64_efi.lds | head -n 1)" >> $GITHUB_OUTPUT
         echo "BIOS_FD=$(find /usr/share -name OVMF.fd | head -n 1)" >> $GITHUB_OUTPUT
+        echo "LD_EXTRA=-L$(find /usr/lib -name libgnuefi.a -exec dirname {} \; | head -n 1)" >>$GITHUB_OUTPUT
 
     - name: Build UEFI application
       run: |
@@ -32,12 +33,15 @@ jobs:
           INCLUDE_DIRS="${{ steps.system-paths.outputs.INCLUDE_DIRS }}" \
           LD_OBJ="${{ steps.system-paths.outputs.LD_OBJ }}" \
           EFI_LDS="${{ steps.system-paths.outputs.EFI_LDS }}" \
-          BIOS_FD="${{ steps.system-paths.outputs.BIOS_FD }}"
+          BIOS_FD="${{ steps.system-paths.outputs.BIOS_FD }}" \
+          LD_EXTRA="${{ steps.system-paths.outputs.LD_EXTRA }}"
+          
     - name: Archive build artifacts
       uses: actions/upload-artifact@v2
       with:
         name: reboot-efi
         path: reboot.efi
+
     - name: Archive build artifacts
       uses: actions/upload-artifact@v2
       with:

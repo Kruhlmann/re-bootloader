@@ -5,11 +5,13 @@ INCLUDE_DIRS ?= /usr/lib
 LD_OBJ ?= /usr/lib/crt0-efi-x86_64.o
 EFI_LDS ?= /usr/lib/elf_x86_64_efi.lds
 BIOS_FD ?= /usr/share/OVMF/FV/OVMF.fd
+LD_EXTRA ?= 
 DISK_BLOCK_COUNT ?= 204800
 DISK_BLOCK_SIZE_BYTES ?= 512
 
+CC := gcc
 CFLAGS := -c -fno-stack-protector -fpic -fshort-wchar -mno-red-zone -DEFI_FUNCTION_WRAPPER $(addprefix -I,$(INCLUDE_DIRS))
-LDFLAGS := -nostdlib -znocombreloc -T $(EFI_LDS) -shared -Bsymbolic -lgnuefi -lefi
+LDFLAGS := $(LD_OBJ) -nostdlib -znocombreloc -T $(EFI_LDS) -shared -Bsymbolic -lgnuefi -lefi $(LD_EXTRA)
 QEMUFLAGS := -bios $(BIOS_FD) -nographic -serial mon:stdio 
 
 .PHONY: all
@@ -35,10 +37,10 @@ reboot.efi: main.so
 	objcopy -j .text -j .sdata -j .data -j .dynamic -j .dynsym -j .rel -j .rela -j .reloc --target=efi-app-x86_64 $< $@
 
 %.o: %.c
-	gcc $< $(CFLAGS) -o $@
+	$(CC) $< $(CFLAGS) -o $@
 
 %.so: %.o
-	ld $< $(LD_OBJ) $(LDFLAGS) -o $@
+	ld $< $(LDFLAGS) -o $@
 
 clean:
 	rm *.o *.so reboot.efi reboot.img
