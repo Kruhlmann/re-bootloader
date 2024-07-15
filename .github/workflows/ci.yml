@@ -39,26 +39,62 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Download build artifacts
-      uses: actions/download-artifact@v2
-      with:
-        name: reboot-artifacts
-        path: ./artifacts
+      - name: Set up Git
+        run: |
+          git config --global safe.directory /github/workspace
+          git fetch --tags
 
-    - name: Create a Release
-      uses: elgohr/Github-Release-Action@v5
-      env:
-        GH_TOKEN: ${{ github.token }}
-      with:
-        body_path: CHANGELOG.md
-        files: |
-          main.efi
-          reboot.img
-        prerelease: false
-        draft: false
-        fail_on_unmatched_files: true
-        generate_release_notes: true
-        make_latest: true
+      - name: Get release tag
+        id: get_tag
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Get release notes from CHANGELOG.md
+        id: get_release_notes
+        run: |
+          release_notes=$(cat CHANGELOG.md)
+          echo "release_notes<<EOF" >> $GITHUB_ENV
+          echo "${release_notes}" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Create GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag=${{ env.tag }}
+          release_notes=${{ env.release_notes }}
+          curl -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"tag_name": "'"$tag"'","name": "Release '"$tag"'","body": "'"$release_notes"'","draft": false,"prerelease": false}' \
+            https://api.github.com/repos/${{ github.repository }}/releases
+
+      - name: Get upload URL
+        id: get_upload_url
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          upload_url=$(curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ env.tag }} | jq -r .upload_url | sed 's/{?name,label}//')
+          echo "upload_url=${upload_url}" >> $GITHUB_ENV
+
+      - name: Upload main.efi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @./path/to/main.efi \
+            "${{ env.upload_url }}?name=main.efi"
+
+      - name: Upload reboot.img
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @./path/to/reboot.img \
+            "${{ env.upload_url }}?name=reboot.img"
