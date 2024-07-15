@@ -13,16 +13,16 @@ CC := gcc
 CFLAGS := -c -fno-stack-protector -fpic -fshort-wchar -mno-red-zone -DEFI_FUNCTION_WRAPPER $(addprefix -I,$(INCLUDE_DIRS))
 LDFLAGS := $(LD_OBJ) -nostdlib -znocombreloc -T $(EFI_LDS) -shared -Bsymbolic -lgnuefi -lefi $(LD_EXTRA)
 QEMUFLAGS := -bios $(BIOS_FD) -nographic -serial mon:stdio 
+OBJCOPYFLAGS := -j .text -j .sdata -j .data -j .dynamic -j .dynsym -j .rel -j .rela -j .reloc --target=efi-app-x86_64
 
 .PHONY: all
-all: reboot.efi reboot.img
+all: reboot.efi
 
 .PHONY: run
 run: reboot.img
 	qemu-system-x86_64 -drive file=$<,format=raw $(QEMUFLAGS)
 
-
-reboot.img: reboot.efi
+reboot.img: main.efi
 	dd if=/dev/zero of=$@ bs=$(DISK_BLOCK_SIZE_BYTES) count=$(DISK_BLOCK_COUNT)
 	parted -s $@ mklabel gpt
 	parted -s $@ mkpart EFI fat32 2048s 100%
@@ -31,10 +31,10 @@ reboot.img: reboot.efi
 	mformat -i $@@@$(ESP_OFFSET) -h 32 -t 32 -n 64 -c 1 ::
 	mmd -i $@@@$(ESP_OFFSET) ::/EFI
 	mmd -i $@@@$(ESP_OFFSET) ::/EFI/BOOT
-	mcopy -i $@@@$(ESP_OFFSET) reboot.efi ::/EFI/BOOT/BOOTX64.EFI
+	mcopy -i $@@@$(ESP_OFFSET) $< ::/EFI/BOOT/BOOTX64.EFI
 
-reboot.efi: main.so
-	objcopy -j .text -j .sdata -j .data -j .dynamic -j .dynsym -j .rel -j .rela -j .reloc --target=efi-app-x86_64 $< $@
+%.efi: %.so
+	objcopy $(OBJCOPYFLAGS) $< $@
 
 %.o: %.c
 	$(CC) $< $(CFLAGS) -o $@
@@ -42,5 +42,6 @@ reboot.efi: main.so
 %.so: %.o
 	ld $< $(LDFLAGS) -o $@
 
+.PHONY:
 clean:
-	rm *.o *.so reboot.efi reboot.img
+	rm *.o *.so *.efi reboot.img

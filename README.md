@@ -1,6 +1,6 @@
 # Re-Bootloader
 
-This project implements a simple UEFI bootloader that immediately reboots the system.
+This project implements a simple AMD64 UEFI bootloader that immediately reboots the system.
 
 Useful as a fall-back disk install in case machines that rely on PXE cannot be configured to auto-retry.
 

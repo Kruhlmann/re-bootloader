@@ -29,7 +29,7 @@ jobs:
 
     - name: Build UEFI application
       run: |
-        make \
+        make reboot.efi reboot.img \
           INCLUDE_DIRS="${{ steps.system-paths.outputs.INCLUDE_DIRS }}" \
           LD_OBJ="${{ steps.system-paths.outputs.LD_OBJ }}" \
           EFI_LDS="${{ steps.system-paths.outputs.EFI_LDS }}" \

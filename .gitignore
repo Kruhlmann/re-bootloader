@@ -1,4 +1,3 @@
-build
 *.EFI
 *.efi
 *.o
@@ -6,4 +5,3 @@ build
 *.img
 *.swo
 *.swp
-serial.text
