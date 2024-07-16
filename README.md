@@ -64,8 +64,6 @@ The Makefile supports several variables that can be overridden:
 - `LD_OBJ`: Path to the UEFI crt0 object file (default: `/usr/lib/crt0-efi-x86_64.o`)
 - `EFI_LDS`: Path to the UEFI linker script (default: `/usr/lib/elf_x86_64_efi.lds`)
 - `BIOS_FD`: Path to the OVMF BIOS image for QEMU (default: `/usr/share/OVMF/FV/OVMF.fd`)
-- `DISK_BLOCK_COUNT`: Number of blocks in the disk image (default: 204800)
-- `DISK_BLOCK_SIZE_BYTES`: Size of each block in bytes (default: 512)
 
 Example usage:
 
