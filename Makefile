@@ -46,6 +46,6 @@ reboot.img: main.efi
 %.so: %.o
 	ld $< $(LDFLAGS) -o $@
 
-.PHONY:
+.PHONY: clean
 clean:
 	rm *.o *.so *.efi reboot.img
